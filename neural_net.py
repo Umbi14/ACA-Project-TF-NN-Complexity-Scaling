@@ -12,32 +12,29 @@ class Model:
     def __init__(self, config):
         self.n_classes = config['n_classes']
         self.n_filters = config['n_filters']
+        self.n_layers = config['n_layers']
         self.keep_prob = tf.constant(0.75)
 
     def model(self, features):
-        '''
-        Function to build the neural net
-        '''
-        conv1 = tf.layers.conv2d(inputs=features,
-                                  filters=self.n_filters,
-                                  kernel_size=[5, 5],
-                                  padding='SAME',
-                                  activation=tf.nn.relu,
-                                  name='conv1')
-        pool1 = tf.layers.max_pooling2d(inputs=conv1,
-                                        pool_size=[2, 2],
-                                        strides=2,
-                                        name='pool1')
-        conv2 = tf.layers.conv2d(inputs=pool1,
-                                  filters=self.n_filters,
-                                  kernel_size=[5, 5],
-                                  padding='SAME',
-                                  activation=tf.nn.relu,
-                                  name='conv2')
-        pool2 = tf.layers.max_pooling2d(inputs=conv2,
-                                        pool_size=[2, 2],
-                                        strides=2,
-                                        name='pool2')
+        model = {}
+        for l in range(self.n_layers):
+            if l == 0:
+                layer_input = features
+            else:
+                layer_input = model[str(l-1)]
+            print('qui prende')
+            conv = tf.layers.conv2d(inputs=layer_input,
+                                      filters=self.n_filters,
+                                      kernel_size=[5, 5],
+                                      padding='SAME',
+                                      activation=tf.nn.relu,
+                                      name='conv'+str(l))
+            pool = tf.layers.max_pooling2d(inputs=conv,
+                                            pool_size=[2, 2],
+                                            strides=2,
+                                            name='pool'+str(l))
+            model[str(l)] = pool
+        print('model', model)
 
         '''
         common part to all the models:
@@ -45,8 +42,8 @@ class Model:
             - fully connected layer
         '''
 
-        feature_dim = pool2.shape[1] * pool2.shape[2] * pool2.shape[3]
-        pool2 = tf.reshape(pool2, [-1, feature_dim])
-        fc = tf.layers.dense(pool2, 512, activation=tf.nn.relu, name='fc')
+        feature_dim = pool.shape[1] * pool.shape[2] * pool.shape[3]
+        reshaped = tf.reshape(pool, [-1, feature_dim])
+        fc = tf.layers.dense(reshaped, 512, activation=tf.nn.relu, name='fc')
         logits = tf.layers.dense(fc, self.n_classes, name='logits')
         return logits
