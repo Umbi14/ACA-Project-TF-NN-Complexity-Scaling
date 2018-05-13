@@ -11,20 +11,19 @@ import random
 from neural_net import Model
 
 config = json.load(open('./config.json'))
-EPOCHS = 10
-BATCH_SIZE = 2#16
+BATCH_SIZE = config['batch_size']
 
 class StreetLearning:
     def __init__(self):
         #dataaset
-        dataset_name = 'einstein' #'kitti_data_road'
+        dataset_name = config['dataset_name']#'einstein' #'kitti_data_road'
         self.train_img_path = 'data/' + dataset_name + '/trainingtraining/inputs'
         self.train_target_img_path = 'data/' + dataset_name + '/trainingtraining/targets'
         self.test_img_path = 'data/' + dataset_name + '/testingtesting/inputs'
         self.test_target_img_path = 'data/' + dataset_name + '/testingtesting/targets'
 
-        self.input_dim = [28,28,3] #[1242,375,3] #this must be the right size of the images
-        self.resized_dim = [28,28]#[92,28]
+        self.input_dim = config['input_size'] #[1242,375,3] #this must be the right size of the images
+        self.resized_dim = [self.input_dim[0],self.input_dim[1]]#[92,28]
 
 
     def get_dataset(self, img_path, target_img_path):
@@ -64,20 +63,16 @@ class StreetLearning:
 
     def get_data(self):
         # using two numpy arrays
-        self.train_data = self.get_dataset(self.train_img_path, self.train_target_img_path)   # tuple of (inputs filenames, labels)
         test_data = self.get_dataset(self.test_img_path, self.test_target_img_path)  # tuple of (inputs filenames, labels)
 
-        train_dataset = tf.data.Dataset.from_tensor_slices(self.train_data)
-        train_dataset = train_dataset.map(self._parse_function).batch(BATCH_SIZE).repeat()
         test_dataset = tf.data.Dataset.from_tensor_slices(test_data)
-        test_dataset = test_dataset.map(self._parse_function).batch(test_data[0].shape[0]).repeat()
+        test_dataset = test_dataset.map(self._parse_function).batch(BATCH_SIZE).repeat()    #test_data[0].shape[0]
 
         #iterator
-        iterator = tf.data.Iterator.from_structure(train_dataset.output_types,train_dataset.output_shapes)
+        iterator = tf.data.Iterator.from_structure(test_dataset.output_types,test_dataset.output_shapes)
         self.features, self.labels = iterator.get_next()
 
         #init
-        self.train_init = iterator.make_initializer(train_dataset)  # initializer for train_dataset
         self.test_init = iterator.make_initializer(test_dataset)    # initializer for test_dataset
 
     def model(self):
@@ -103,16 +98,16 @@ class StreetLearning:
     def train(self):
         with tf.Session() as sess:
             print('in the session')
-            self.training = True
-            train_len = len(glob.glob(os.path.join(self.train_img_path, '*')))
-            n_batches = train_len // BATCH_SIZE
+            test_len = len(glob.glob(os.path.join(self.test_img_path, '*')))
+            n_batches = test_len // BATCH_SIZE
             sess.run(tf.global_variables_initializer())
             print('variables initialized')
             self.training = False
             # initialise iterator with test data
             sess.run(self.test_init)
             start = time.time()
-            print(sess.run(self.logits))
+            for _ in range(n_batches):
+                print(sess.run(self.logits))
             print('inference took', time.time() - start, 's')
 
 
