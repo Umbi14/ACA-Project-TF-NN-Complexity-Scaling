@@ -25,6 +25,8 @@ class StreetLearning:
         self.input_dim = config['input_size'] #[1242,375,3] #this must be the right size of the images
         self.resized_dim = [self.input_dim[0],self.input_dim[1]]#[92,28]
 
+        self.n_classes = config['n_classes']
+
 
     def get_dataset(self, img_path, target_img_path):
         '''
@@ -34,20 +36,14 @@ class StreetLearning:
             labels: list of labels
         '''
         inputs_file_paths = glob.glob(os.path.join(img_path, '*'))
+
+        # assaign random class
         labels = []
-        for input_file_path in inputs_file_paths:
-            #Extract target filepath
-            file_header = input_file_path.split("/")[-1].split("_")[0]
-            file_number = input_file_path.split("_")[-1]
-            target_file_path = target_img_path + "/" + file_header + '_'
-            if file_header == 'um':
-                target_file_path += 'lane_'
-                labels.append([1,0])
-            else:
-                labels.append([0,1])
-                target_file_path += 'road_'
-            target_file_path += file_number
-            #labels.append([1]*self.n_classes)#(target_file_path)  #np.random.sample(self.n_classes) #[random.randint(0,self.n_classes-1)]*self.n_classes
+        for _ in inputs_file_paths:
+            c = [0]*self.n_classes
+            random_index = int(self.n_classes * random.random())
+            c[random_index] = 1
+            labels.append(c)
 
         filenames = tf.constant(inputs_file_paths)
         labels = tf.constant(labels)
@@ -95,7 +91,49 @@ class StreetLearning:
         '''
         self.train_op = tf.train.AdamOptimizer().minimize(self.loss)
 
-    def train(self):
+    def infer(self):
+        '''total_parameters = 0
+        for variable in tf.trainable_variables():
+            print('*', variable, '*')
+            # shape is an array of tf.Dimension
+            shape = variable.get_shape()
+            print('shape', shape)
+            print('len(shape)', len(shape))
+            variable_parameters = 1
+            for dim in shape:
+                print('dim', dim)
+                variable_parameters *= dim.value
+            print('variable_parameters', variable_parameters)
+            total_parameters += variable_parameters
+        print('total_parameters', total_parameters)
+        print('len(tf.trainable_variables())', len(tf.trainable_variables()))'''
+
+        run_metadata = tf.RunMetadata()
+        # Print trainable variable parameter statistics to stdout.
+        ProfileOptionBuilder = tf.profiler.ProfileOptionBuilder
+
+        print('*** flops ***')
+
+        flops = tf.profiler.profile(
+            tf.get_default_graph(),
+            run_meta = run_metadata,
+            options=ProfileOptionBuilder.float_operation())
+
+        print('*** memory ***')
+        memory = tf.profiler.profile(
+            tf.get_default_graph(),
+            run_meta = run_metadata,
+            options=ProfileOptionBuilder.time_and_memory())
+
+        print('*** param_stats ***')
+        param_stats = tf.profiler.profile(
+            tf.get_default_graph(),
+            run_meta = run_metadata,
+            options=ProfileOptionBuilder.trainable_variables_parameter())
+
+        print('total params:', param_stats.total_parameters)
+        print('total flops:', flops.total_float_ops)
+
         with tf.Session() as sess:
             print('in the session')
             test_len = len(glob.glob(os.path.join(self.test_img_path, '*')))
@@ -117,4 +155,4 @@ if __name__ == '__main__':
     sl.model()
     sl.loss()
     sl.optimizer()
-    sl.train()
+    sl.infer()

@@ -13,6 +13,8 @@ class Model:
         self.n_classes = config['n_classes']
         self.n_filters = config['n_filters']
         self.n_layers = config['n_layers']
+        self.kernel_size = config['kernel_size']
+        self.fc_units = config['fc_units']
         self.keep_prob = tf.constant(0.75)
 
     def model(self, features):
@@ -22,10 +24,9 @@ class Model:
                 layer_input = features
             else:
                 layer_input = model[str(l-1)]
-            print('qui prende')
             conv = tf.layers.conv2d(inputs=layer_input,
                                       filters=self.n_filters,
-                                      kernel_size=[5, 5],
+                                      kernel_size=self.kernel_size,
                                       padding='SAME',
                                       activation=tf.nn.relu,
                                       name='conv'+str(l))
@@ -34,7 +35,6 @@ class Model:
                                             strides=2,
                                             name='pool'+str(l))
             model[str(l)] = pool
-        print('model', model)
 
         '''
         common part to all the models:
@@ -44,6 +44,6 @@ class Model:
 
         feature_dim = pool.shape[1] * pool.shape[2] * pool.shape[3]
         reshaped = tf.reshape(pool, [-1, feature_dim])
-        fc = tf.layers.dense(reshaped, 512, activation=tf.nn.relu, name='fc')
+        fc = tf.layers.dense(reshaped, self.fc_units, activation=tf.nn.relu, name='fc')
         logits = tf.layers.dense(fc, self.n_classes, name='logits')
         return logits

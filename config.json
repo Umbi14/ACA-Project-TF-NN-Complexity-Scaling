@@ -1,8 +1,10 @@
 {
-  "n_layers" : 4,
+  "n_layers" : 2,
   "n_filters" : 32,
   "batch_size" : 1,
   "input_size" : [28,28,3],
   "n_classes" : 2,
-  "dataset_name" : "einstein"
+  "dataset_name" : "einstein",
+  "kernel_size" : [5,5],
+  "fc_units" : 512
 }
