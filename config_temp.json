@@ -1,0 +1,9 @@
+{
+  "n_layers" : [2, 4],
+  "n_filters" : [32, 64],
+  "batch_size" : [1, 2],
+  "input_size" : [[28,28,3], [28,28,3]],
+  "n_classes" : [2, 3],
+  "kernel_size" : [[3,3],[5,5]],
+  "fc_units" : [512, 1024]
+}

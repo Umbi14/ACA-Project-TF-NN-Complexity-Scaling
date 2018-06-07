@@ -7,6 +7,7 @@ from matplotlib import gridspec as gridspec
 from matplotlib import pyplot as plt
 import numpy as np
 import random
+import complexity
 
 class Model:
     def __init__(self, config):
@@ -18,6 +19,7 @@ class Model:
         self.keep_prob = tf.constant(0.75)
 
     def model(self, features):
+        model_complexity = {}
         model = {}
         for l in range(self.n_layers):
             if l == 0:
@@ -34,7 +36,10 @@ class Model:
                                             pool_size=[2, 2],
                                             strides=2,
                                             name='pool'+str(l))
+
             model[str(l)] = pool
+            print('pool shape', pool.shape[3])
+        print('model', model)
 
         '''
         common part to all the models:
@@ -46,4 +51,8 @@ class Model:
         reshaped = tf.reshape(pool, [-1, feature_dim])
         fc = tf.layers.dense(reshaped, self.fc_units, activation=tf.nn.relu, name='fc')
         logits = tf.layers.dense(fc, self.n_classes, name='logits')
-        return logits
+
+        fc_flops = complexity.fc_flops(reshaped.shape[1], self.fc_units)
+
+        model_complexity['fc_flops'] = pool.shape[3] * self.fc_units
+        return logits, model_complexity

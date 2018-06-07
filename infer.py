@@ -10,25 +10,33 @@ import numpy as np
 import random
 from neural_net import Model
 
-config = json.load(open('./config.json'))
-BATCH_SIZE = config['batch_size']
 
-class StreetLearning:
-    def __init__(self):
-        #dataaset
-        dataset_name = config['dataset_name']#'einstein' #'kitti_data_road'
-        self.train_img_path = 'data/' + dataset_name + '/trainingtraining/inputs'
-        self.train_target_img_path = 'data/' + dataset_name + '/trainingtraining/targets'
-        self.test_img_path = 'data/' + dataset_name + '/testingtesting/inputs'
-        self.test_target_img_path = 'data/' + dataset_name + '/testingtesting/targets'
+class Infer:
+    def __init__(self, config):
+        self.config = config
+        #dataset
+        self.BATCH_SIZE = config['batch_size']
 
         self.input_dim = config['input_size'] #[1242,375,3] #this must be the right size of the images
+        #self.train_img_path = 'data/' + dataset_name + '/train/inputs'
+        dataset_name = self.get_dataset_name(self.input_dim) #config['dataset_name']
+        self.test_img_path = 'data/' + dataset_name + '/test/inputs'
+
         self.resized_dim = [self.input_dim[0],self.input_dim[1]]#[92,28]
 
         self.n_classes = config['n_classes']
 
+    def get_dataset_name(self, input_dim):
+        """
+        Given the input size, get the name of the folder where the dataset is contained
+        """
+        name = str(input_dim[0])
+        for i in input_dim[1:]:
+            name += 'x' + str(i)
+        return name
 
-    def get_dataset(self, img_path, target_img_path):
+
+    def get_dataset(self, img_path):
         '''
         Parameters: paths to the dataset folder
         Return: tuple of 2 tensors:
@@ -59,10 +67,10 @@ class StreetLearning:
 
     def get_data(self):
         # using two numpy arrays
-        test_data = self.get_dataset(self.test_img_path, self.test_target_img_path)  # tuple of (inputs filenames, labels)
+        test_data = self.get_dataset(self.test_img_path)  # tuple of (inputs filenames, labels)
 
         test_dataset = tf.data.Dataset.from_tensor_slices(test_data)
-        test_dataset = test_dataset.map(self._parse_function).batch(BATCH_SIZE).repeat()    #test_data[0].shape[0]
+        test_dataset = test_dataset.map(self._parse_function).batch(self.BATCH_SIZE).repeat()    #test_data[0].shape[0]
 
         #iterator
         iterator = tf.data.Iterator.from_structure(test_dataset.output_types,test_dataset.output_shapes)
@@ -75,8 +83,8 @@ class StreetLearning:
         '''
         Function to build the neural net
         '''
-        model = Model(config)
-        self.logits = model.model(self.features)
+        model = Model(self.config)
+        self.logits, self.model_complexity = model.model(self.features)
 
     def loss(self):
         '''
@@ -92,7 +100,8 @@ class StreetLearning:
         self.train_op = tf.train.AdamOptimizer().minimize(self.loss)
 
     def infer(self):
-        '''total_parameters = 0
+        '''
+        total_parameters = 0
         for variable in tf.trainable_variables():
             print('*', variable, '*')
             # shape is an array of tf.Dimension
@@ -108,16 +117,26 @@ class StreetLearning:
         print('total_parameters', total_parameters)
         print('len(tf.trainable_variables())', len(tf.trainable_variables()))'''
 
-        run_metadata = tf.RunMetadata()
+        '''run_metadata = tf.RunMetadata()
         # Print trainable variable parameter statistics to stdout.
         ProfileOptionBuilder = tf.profiler.ProfileOptionBuilder
 
         print('*** flops ***')
-
         flops = tf.profiler.profile(
             tf.get_default_graph(),
             run_meta = run_metadata,
             options=ProfileOptionBuilder.float_operation())
+        print('total flops:', flops.total_float_ops)
+        i = 1
+        for c in flops.children:
+            print('child', i)
+            print(c.float_ops)
+            i += 1'''
+
+        '''l = [c.float_ops for c in flops.children]
+        print(l)
+        s = sum(l)
+        print('sum', s)
 
         print('*** memory ***')
         memory = tf.profiler.profile(
@@ -130,29 +149,22 @@ class StreetLearning:
             tf.get_default_graph(),
             run_meta = run_metadata,
             options=ProfileOptionBuilder.trainable_variables_parameter())
+        print('total params:', param_stats.total_parameters)'''
 
-        print('total params:', param_stats.total_parameters)
-        print('total flops:', flops.total_float_ops)
 
         with tf.Session() as sess:
             print('in the session')
             test_len = len(glob.glob(os.path.join(self.test_img_path, '*')))
-            n_batches = test_len // BATCH_SIZE
+            n_batches = test_len // self.BATCH_SIZE
             sess.run(tf.global_variables_initializer())
             print('variables initialized')
             self.training = False
             # initialise iterator with test data
             sess.run(self.test_init)
             start = time.time()
-            for _ in range(n_batches):
-                print(sess.run(self.logits))
+            for i in range(n_batches):
+                print(i, sess.run(self.logits))
             print('inference took', time.time() - start, 's')
 
-
-if __name__ == '__main__':
-    sl = StreetLearning()
-    sl.get_data()
-    sl.model()
-    sl.loss()
-    sl.optimizer()
-    sl.infer()
+        # delete the graph so that a new one can be build with different configurations
+        tf.reset_default_graph()
