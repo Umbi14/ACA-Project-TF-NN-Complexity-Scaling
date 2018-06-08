@@ -16,7 +16,7 @@ class Infer:
     def __init__(self, config):
         self.config = config
         #dataset
-        self.BATCH_SIZE = config['batch_size']
+        self.batch_size = config['batch_size']
 
         self.input_dim = config['input_size']
         dataset_name = self.get_dataset_name(self.input_dim) #config['dataset_name']
@@ -70,7 +70,7 @@ class Infer:
         test_data = self.get_dataset(self.test_img_path)  # tuple of (inputs filenames, labels)
 
         test_dataset = tf.data.Dataset.from_tensor_slices(test_data)
-        test_dataset = test_dataset.map(self._parse_function).batch(self.BATCH_SIZE).repeat()    #test_data[0].shape[0]
+        test_dataset = test_dataset.map(self._parse_function).batch(self.batch_size).repeat()    #test_data[0].shape[0]
 
         #iterator
         iterator = tf.data.Iterator.from_structure(test_dataset.output_types,test_dataset.output_shapes)
@@ -100,11 +100,11 @@ class Infer:
         self.train_op = tf.train.AdamOptimizer().minimize(self.loss)
 
     def infer(self):
-        
+
         with tf.Session() as sess:
             print('in the session')
             test_len = len(glob.glob(os.path.join(self.test_img_path, '*')))
-            n_batches = test_len // self.BATCH_SIZE
+            n_batches = test_len // self.batch_size
             sess.run(tf.global_variables_initializer())
             print('variables initialized')
             self.training = False
@@ -118,7 +118,15 @@ class Infer:
             print('inference took', inference_time, 's')
             self.model_complexity['inference_time'] = inference_time
             pprint.pprint(self.model_complexity)
-            #print(self.model_complexity)
+            for i in range(self.config['n_layers']):
+                print('CONV'+str(i), '['+self.model_complexity['conv'][str(i)]['description']+']', 'memory', self.model_complexity['conv'][str(i)]['memory'], 'weights', self.model_complexity['conv'][str(i)]['weights'], 'FLOPS', self.model_complexity['conv'][str(i)]['flops'])
+                print('POOL'+str(i), '['+self.model_complexity['pool'][str(i)]['description']+']', 'memory', self.model_complexity['pool'][str(i)]['memory'])
+            print('FC', '['+self.model_complexity['fc']['0']['description']+']', 'memory', self.model_complexity['fc']['0']['memory'], 'weights', self.model_complexity['fc']['0']['weights'], 'FLOPS', self.model_complexity['fc']['0']['flops'])
+
+            print('TOTAL PARAMETERS', self.model_complexity['tot_parmas'])
+            print('TOTAL MEMORY', self.model_complexity['total_mem'], 'bytes')
+            print('inference took', self.model_complexity['inference_time'], 'seconds')
+
 
         # delete the graph so that a new one can be build with different configurations
         tf.reset_default_graph()

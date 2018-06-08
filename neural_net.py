@@ -77,6 +77,7 @@ class Model:
         logits = tf.layers.dense(fc, self.n_classes, name='logits')
 
         model_complexity['fc']['0'] = {}
+        model_complexity['fc']['0']['description'] = '1x1x' + str(fc.get_shape().as_list()[1])
         model_complexity['fc']['0']['flops'] = complexity.fc_flops(reshaped.get_shape().as_list()[1], self.fc_units)
         # memory = n of neurons
         model_complexity['fc']['0']['memory'] = fc.get_shape().as_list()[1]
