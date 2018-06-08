@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import random
 from neural_net import Model
+import pprint
 
 
 class Infer:
@@ -17,12 +18,11 @@ class Infer:
         #dataset
         self.BATCH_SIZE = config['batch_size']
 
-        self.input_dim = config['input_size'] #[1242,375,3] #this must be the right size of the images
-        #self.train_img_path = 'data/' + dataset_name + '/train/inputs'
+        self.input_dim = config['input_size']
         dataset_name = self.get_dataset_name(self.input_dim) #config['dataset_name']
         self.test_img_path = 'data/' + dataset_name + '/test/inputs'
 
-        self.resized_dim = [self.input_dim[0],self.input_dim[1]]#[92,28]
+        self.resized_dim = [self.input_dim[0],self.input_dim[1]]
 
         self.n_classes = config['n_classes']
 
@@ -100,58 +100,7 @@ class Infer:
         self.train_op = tf.train.AdamOptimizer().minimize(self.loss)
 
     def infer(self):
-        '''
-        total_parameters = 0
-        for variable in tf.trainable_variables():
-            print('*', variable, '*')
-            # shape is an array of tf.Dimension
-            shape = variable.get_shape()
-            print('shape', shape)
-            print('len(shape)', len(shape))
-            variable_parameters = 1
-            for dim in shape:
-                print('dim', dim)
-                variable_parameters *= dim.value
-            print('variable_parameters', variable_parameters)
-            total_parameters += variable_parameters
-        print('total_parameters', total_parameters)
-        print('len(tf.trainable_variables())', len(tf.trainable_variables()))'''
-
-        '''run_metadata = tf.RunMetadata()
-        # Print trainable variable parameter statistics to stdout.
-        ProfileOptionBuilder = tf.profiler.ProfileOptionBuilder
-
-        print('*** flops ***')
-        flops = tf.profiler.profile(
-            tf.get_default_graph(),
-            run_meta = run_metadata,
-            options=ProfileOptionBuilder.float_operation())
-        print('total flops:', flops.total_float_ops)
-        i = 1
-        for c in flops.children:
-            print('child', i)
-            print(c.float_ops)
-            i += 1'''
-
-        '''l = [c.float_ops for c in flops.children]
-        print(l)
-        s = sum(l)
-        print('sum', s)
-
-        print('*** memory ***')
-        memory = tf.profiler.profile(
-            tf.get_default_graph(),
-            run_meta = run_metadata,
-            options=ProfileOptionBuilder.time_and_memory())
-
-        print('*** param_stats ***')
-        param_stats = tf.profiler.profile(
-            tf.get_default_graph(),
-            run_meta = run_metadata,
-            options=ProfileOptionBuilder.trainable_variables_parameter())
-        print('total params:', param_stats.total_parameters)'''
-
-
+        
         with tf.Session() as sess:
             print('in the session')
             test_len = len(glob.glob(os.path.join(self.test_img_path, '*')))
@@ -163,8 +112,13 @@ class Infer:
             sess.run(self.test_init)
             start = time.time()
             for i in range(n_batches):
-                print(i, sess.run(self.logits))
-            print('inference took', time.time() - start, 's')
+                sess.run(self.logits)
+                #print(i, sess.run(self.logits)) #self.train_op
+            inference_time = time.time() - start
+            print('inference took', inference_time, 's')
+            self.model_complexity['inference_time'] = inference_time
+            pprint.pprint(self.model_complexity)
+            #print(self.model_complexity)
 
         # delete the graph so that a new one can be build with different configurations
         tf.reset_default_graph()

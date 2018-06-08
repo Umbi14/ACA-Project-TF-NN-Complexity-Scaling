@@ -10,36 +10,27 @@ import numpy as np
 import random
 from infer import Infer
 import itertools
-a = ["foo", "melon"]
-b = [True, False]
-c = [(x,y) for x in a for y in b]
-print(c)
 
 config_file = json.load(open('./config.json'))
 
-for n_layers in config_file['n_layers']:
-    for n_filters in config_file['n_filters']:
-        for batch_size in config_file['batch_size']:
-            for input_size in config_file['input_size']:
-                for n_classes in config_file['n_classes']:
-                    for kernel_size in config_file['kernel_size']:
-                        for fc_units in config_file['fc_units']:
-                            config = {'n_layers' : n_layers,
-                                        'n_filters' : n_filters,
-                                        'batch_size' : batch_size,
-                                        'input_size' : input_size,
-                                        'n_classes' : n_classes,
-                                        'kernel_size' : kernel_size,
-                                        'fc_units' : fc_units}
-                            print(config)
-                            sl = Infer(config)
-                            sl.get_data()
-                            sl.model()
-                            sl.loss()
-                            sl.optimizer()
-                            sl.infer()
-                            del sl
 
+for c in itertools.product(config_file['n_layers'], config_file['n_filters'], config_file['batch_size'],
+                                    config_file['input_size'],config_file['n_classes'], config_file['kernel_size'],config_file['fc_units']):
+    config = {'n_layers' : c[0],
+                'n_filters' : c[1],
+                'batch_size' : c[2],
+                'input_size' : c[3],
+                'n_classes' : c[4],
+                'kernel_size' : c[5],
+                'fc_units' : c[6]}
+    print(config)
+    sl = Infer(config)
+    sl.get_data()
+    sl.model()
+    sl.loss()
+    sl.optimizer()
+    sl.infer()
+    del sl
 
 
 '''
