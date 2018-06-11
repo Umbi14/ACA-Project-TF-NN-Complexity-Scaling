@@ -62,7 +62,6 @@ class Model:
             model_complexity['total_mem'] += model_complexity['pool'][str(l)]['memory']
 
             model[str(l)] = pool
-        print('model', model)
 
         '''
         common part to all the models:
@@ -73,7 +72,6 @@ class Model:
         feature_dim = pool.shape[1] * pool.shape[2] * pool.shape[3]
         reshaped = tf.reshape(pool, [-1, feature_dim])
         fc = tf.layers.dense(reshaped, self.fc_units, activation=tf.nn.relu, name='fc')
-        print('**************', fc.get_shape())
         logits = tf.layers.dense(fc, self.n_classes, name='logits')
 
         model_complexity['fc']['0'] = {}
