@@ -115,8 +115,7 @@ class Infer:
                 sess.run(self.logits)
             # inferece time (of a single image) is compute as the total inference time of the whole test set,
             # divided by the number of element in the data set
-            inference_time = 1000 * (time.time() - start) / test_len
-            print('inference took', inference_time, 'ms')
+            inference_time = (time.time() - start) / test_len
             self.model_complexity['inference_time'] = inference_time
             pprint.pprint(self.model_complexity)
             for i in range(self.config['n_layers']):
@@ -126,7 +125,7 @@ class Infer:
 
             print('TOTAL PARAMETERS', self.model_complexity['tot_parmas'])
             print('TOTAL MEMORY', self.model_complexity['total_mem'], 'bytes')
-            print('inference took', self.model_complexity['inference_time'], 'milliseconds')
+            print('inference took', self.model_complexity['inference_time'], 'seconds')
 
 
         # delete the graph so that a new one can be build with different configurations

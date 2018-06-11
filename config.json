@@ -1,7 +1,7 @@
 {
   "n_layers" : [4],
   "n_filters" : [32],
-  "batch_size" : [1],
+  "batch_size" : [10],
   "input_size" : [[28,28,3]],
   "n_classes" : [2],
   "kernel_size" : [[3,3]],
