@@ -19,7 +19,7 @@ class Model:
         self.keep_prob = tf.constant(0.75)
 
     def model(self, features):
-        model_complexity = {'conv': {}, 'pool' : {}, 'fc' : {}, 'total_mem' : 0, 'tot_parmas' : 0}
+        model_complexity = {'conv': {}, 'pool' : {}, 'fc' : {}, 'total_mem' : 0, 'tot_parmas' : 0, 'tot_flops' : 0}
         model = {}
         for l in range(self.n_layers):
             if l == 0:
@@ -45,6 +45,7 @@ class Model:
             model_complexity['conv'][str(l)]['weights'] = complexity.weights(self.kernel_size,layer_input.get_shape(), self.n_filters)
             # memory = input width * input height * num of filters
             model_complexity['conv'][str(l)]['memory'] = complexity.memory(layer_input.get_shape(), self.n_filters)
+            model_complexity['tot_flops'] += model_complexity['conv'][str(l)]['flops']
             model_complexity['total_mem'] += model_complexity['conv'][str(l)]['memory']
             model_complexity['tot_parmas'] += model_complexity['conv'][str(l)]['weights']
 
@@ -81,6 +82,7 @@ class Model:
         model_complexity['fc']['0']['memory'] = fc.get_shape().as_list()[1]
         # weigths = input mem * n of neurons
         model_complexity['fc']['0']['weights'] = fc.get_shape().as_list()[1] * model_complexity['pool'][str(l)]['memory']
+        model_complexity['tot_flops'] += model_complexity['fc']['0']['flops']
         model_complexity['total_mem'] += model_complexity['fc']['0']['memory']
         model_complexity['tot_parmas'] += model_complexity['fc']['0']['weights']
 

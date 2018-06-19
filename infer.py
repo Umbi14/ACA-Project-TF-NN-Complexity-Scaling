@@ -101,6 +101,31 @@ class Infer:
 
     def infer(self):
 
+        '''for variable in tf.trainable_variables():
+            print('*', variable, '*')
+            # shape is an array of tf.Dimension
+            shape = variable.get_shape()
+            print('shape', shape)
+            print('len(shape)', len(shape))'''
+
+        '''run_metadata = tf.RunMetadata()
+        # Print trainable variable parameter statistics to stdout.
+        ProfileOptionBuilder = tf.profiler.ProfileOptionBuilder
+
+        print('*** memory ***')
+        memory = tf.profiler.profile(
+            tf.get_default_graph(),
+            run_meta = run_metadata,
+            options=ProfileOptionBuilder.time_and_memory())
+        print('memory:', memory)
+
+        print('*** param_stats ***')
+        param_stats = tf.profiler.profile(
+            tf.get_default_graph(),
+            run_meta = run_metadata,
+            options=ProfileOptionBuilder.trainable_variables_parameter())
+        print('total params:', param_stats.total_parameters)'''
+
         with tf.Session() as sess:
             print('in the session')
             test_len = len(glob.glob(os.path.join(self.test_img_path, '*')))
@@ -125,8 +150,9 @@ class Infer:
 
             print('TOTAL PARAMETERS', self.model_complexity['tot_parmas'])
             print('TOTAL MEMORY', self.model_complexity['total_mem'], 'bytes')
+            print('TOTAL FLOPS', self.model_complexity['tot_flops'])
             print('inference took', self.model_complexity['inference_time'], 'seconds')
-
 
         # delete the graph so that a new one can be build with different configurations
         tf.reset_default_graph()
+        return self.model_complexity

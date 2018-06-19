@@ -9,7 +9,7 @@ def conv_flops(kernel, input_shape, n_filters, output_shape):#def conv_flops(k1,
     output_height = output_shape.as_list()[2]
     return 2*(k1*k2) + n_channels + n_filters + output_width * output_height
 
-# (kernel width * kernel heigth * input channles) * self.n_filters
+# (kernel width * kernel heigth * input channels) * self.n_filters
 def weights(kernel, input_shape, n_filters):
     k1 = kernel[0]
     k2 = kernel[1]
