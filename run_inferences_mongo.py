@@ -27,7 +27,8 @@ store = True
 
 count = 0
 for c in itertools.product(config_file['n_layers'], config_file['n_filters'], config_file['batch_size'],
-                                    config_file['input_size'],config_file['n_classes'], config_file['kernel_size'],config_file['fc_units']):
+                            config_file['input_size'],config_file['n_classes'], config_file['kernel_size'],config_file['fc_units'],
+                            config_file['kernel_stride']):
     print('configuration', count)
     count += 1
     for i in range(num_inferences):
@@ -38,7 +39,8 @@ for c in itertools.product(config_file['n_layers'], config_file['n_filters'], co
                     'input_size' : c[3],
                     'n_classes' : c[4],
                     'kernel_size' : c[5],
-                    'fc_units' : c[6]}
+                    'fc_units' : c[6],
+                    'kernel_stride' : c[7]}
         print(config)
         sl = Infer(config)
         sl.get_data()
