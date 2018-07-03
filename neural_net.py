@@ -16,6 +16,7 @@ class Model:
         self.n_layers = config['n_layers']
         self.kernel_size = config['kernel_size']
         self.fc_units = config['fc_units']
+        self.kernel_stride = config['kernel_stride']
         self.keep_prob = tf.constant(0.75)
 
     def model(self, features):
@@ -33,6 +34,7 @@ class Model:
             conv = tf.layers.conv2d(inputs=layer_input,
                                       filters=self.n_filters,
                                       kernel_size=self.kernel_size,
+                                      strides=self.kernel_stride,
                                       padding='SAME',
                                       activation=tf.nn.relu,
                                       name='conv'+str(l))
