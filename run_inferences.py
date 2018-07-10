@@ -12,7 +12,7 @@ from infer import Infer
 import itertools
 
 config_file = json.load(open('./config.json'))
-num_inferences = 10 # number of iteration for each configuration
+num_inferences = 1 # number of iteration for each configuration
 
 for _ in range(num_inferences):
     pass
