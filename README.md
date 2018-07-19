@@ -1,6 +1,13 @@
 # ACA-Project-TF-NN-Complexity-Scaling
 Advanced Computer Architecture Project: Tensorflow Neural Network Complexity Scaling
 
+## Requirements
+- Tensorflow 1.8.0
+- intertools
+- matplotlib
+
+## Description
+
 The "config.json" is the file where you can set all the parameters:
 - n_layers: number of layers. Each layer has a conv layer and a max pool layer.
 - n_filters: number of filters for each layer.
